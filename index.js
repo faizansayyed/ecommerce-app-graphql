@@ -1,52 +1,19 @@
-const { ApolloServer, gql } = require("apollo-server");
-const { categories } = require("./initial_data");
-const { products } = require("./initial_data");
+const { ApolloServer } = require("apollo-server");
+const { categories } = require("./db");
+const { products } = require("./db");
+const { typeDefs } = require("./schema");
+const { Query } = require("./resolvers/Query");
+const { Category } = require("./resolvers/Category");
+const { Product } = require("./resolvers/Product");
 
-const typeDefs = gql`
-    type Query {
-      hello: String
-      products: [Product!]!
-      product(id:ID!): Product
-      categories: [Category!]!
-      category(id:ID!): Category
-    }
-
-    type Product {
-      id:ID!,
-      name: String!,
-      description: String!,
-      quantity: Int!,
-      price: Float!,
-      onSale: Boolean!,
-    }
-    
-    type Category {
-      id:ID!,
-      name: String!,
-    }
-`
-
-const resolvers = {
-  Query: {
-    hello: () => {
-      return "World!"
-    },
-    products: () => products,
-    categories: () => categories,
-    product: (parent, args, context) => {
-      const { id } = args;
-      return products.find(d => d.id === id)
-    },
-    category: (parent, args, context) => {
-      const { id } = args;
-      return categories.find(d => d.id === id)
-    }
-  }
-}
+const resolvers = { Query, Category, Product }
 
 const server = new ApolloServer({
   typeDefs,
-  resolvers
+  resolvers,
+  context: {
+    products, categories
+  }
 });
 
 server.listen().then(({ url }) => {
